@@ -1,4 +1,4 @@
-from  math import pi, cos, tan, sin, acos
+from  math import pi, cos, tan, sin, acos, sqrt
 from collections import namedtuple
 
 V2 = namedtuple('Point2', ['x', 'y'])

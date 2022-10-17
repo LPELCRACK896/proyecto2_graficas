@@ -2,7 +2,7 @@ from pickletools import read_unicodestring1
 from turtle import pos
 import lpmath as lpm
 import numpy as np
-from math import pi
+from math import pi, sqrt
 WHITE = (1,1,1)
 BLACK = (0,0,0)
 
@@ -37,7 +37,9 @@ class Sphere(object):
     def ray_intersect(self, orig, dir):
         L = lpm.suma_o_resta_vectores(self.center, orig, True)
         tca = lpm.productoPunto(L, dir)
-        d = (lpm.magnitud_vector(L) ** 2 - tca ** 2) ** 0.5
+        a = lpm.magnitud_vector(L) ** 2 - tca ** 2
+        if a <0: return None
+        d = sqrt(a)
 
         if d > self.radius:
             return None
@@ -147,6 +149,51 @@ class AABB(object):
                         elif abs(plane.normal[2]) > 0 :
                             u = (planeInter.point[0]-self.boundsMin[0])/ self.size[0]
                             v = (planeInter.point[1]-self.boundsMin[1])/ self.size[1]
+        if not intersect: return None
+        
+        return Intersect(distance=t, point=intersect.point, normal = intersect.normal, textCoords=(u, v), sceneObj=self)
+class Cuadrilatero(object):
+    """
+
+    Args:
+        object (_type_): _description_
+    """
+    def __init__(self, position, size, material) -> None:
+        self.position = position
+        self.size = size 
+        self.material = material
+
+        halfSize = [s/2 for s in size]
+
+        self.plane = Plane(position, (0, 0, 1), material)
+
+        self.boundsMin = [0, 0, 0]
+        self.boundsMax = [0, 0, 0]
+
+        epsilon = 0.001
+
+        for i in range(2):
+            self.boundsMin[i] = self.position[i] - (epsilon + halfSize[i])
+            self.boundsMax[i] = self.position[i] + (epsilon +  halfSize[i])
+    
+    def ray_intersect(self, orig, dir):
+        intersect = None
+        t = float('inf')
+        planeInter = self.plane.ray_intersect(orig, dir)
+        if planeInter:
+            planePoint = planeInter.point
+            if self.boundsMin[0] <=planePoint[0] <= self.boundsMax[0] and self.boundsMin[1] <=planePoint[1] <= self.boundsMax[1]:
+                if planeInter.distance < t:
+                    t = planeInter.distance
+                    intersect = planeInter
+                    # Tex coords
+                    u, v = 0, 0
+                    # Las uvs de las caras de los lados
+                    ur= None
+                    vr = None
+                    u = (planeInter.point[0]-self.boundsMin[0])/ self.size[0]
+                    v = (planeInter.point[1]-self.boundsMin[1])/ self.size[1]
+        
         if not intersect: return None
         
         return Intersect(distance=t, point=intersect.point, normal = intersect.normal, textCoords=(u, v), sceneObj=self)
